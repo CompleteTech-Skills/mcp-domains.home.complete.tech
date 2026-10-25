@@ -39,6 +39,12 @@ order; `live` enables billable registration attempts. Obtain explicit approval
 for the exact domain, registrar, and price before registering. A confirmation
 phrase is not authentication or a substitute for user consent.
 
+Purchase guards use the selected registrar's available, exact USD quote. A
+registration request must name that same registrar and match the freshly
+compared domain and price. Missing, estimated, unavailable, or invalid quotes
+do not produce a guard. This comparison check does not guarantee provider-side
+price enforcement if a price changes during registration.
+
 ## HTTP transport
 
 ```sh
@@ -55,6 +61,7 @@ registrar credentials or live purchasing are enabled.
 
 ```sh
 npm run typecheck
+npm test
 npm run build
 npm pack --dry-run
 ```

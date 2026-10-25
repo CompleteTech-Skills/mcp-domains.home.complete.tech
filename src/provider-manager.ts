@@ -82,19 +82,26 @@ export class ProviderManager {
     );
 
     const preferredLiveQuote = comparison.quotes
-      .filter((quote) => purchasableProviders.some((provider) => provider.status.id === quote.registrar))
+      .filter((quote) =>
+        purchasableProviders.some((provider) => provider.status.id === quote.registrar) &&
+        quote.exact &&
+        quote.available === true &&
+        quote.currency === 'USD' &&
+        typeof quote.registrationCost === 'number' &&
+        Number.isFinite(quote.registrationCost) &&
+        quote.registrationCost > 0
+      )
       .sort((left, right) => (left.registrationCost ?? Number.POSITIVE_INFINITY) - (right.registrationCost ?? Number.POSITIVE_INFINITY))[0];
 
     const recommendedRegistrar = preferredLiveQuote?.registrar ?? comparison.cheapestQuote?.registrar ?? null;
     const canPurchaseNow =
       comparison.consensusAvailable === true &&
       config.purchaseMode !== 'disabled' &&
-      recommendedRegistrar !== null &&
-      purchasableProviders.some((provider) => provider.status.id === recommendedRegistrar);
+      preferredLiveQuote !== undefined;
 
     const guardPhrase =
-      recommendedRegistrar && comparison.cheapestQuote?.registrationCost !== undefined
-        ? `BUY ${comparison.domain} VIA ${recommendedRegistrar.toUpperCase()} FOR ${comparison.cheapestQuote.registrationCost.toFixed(2)} USD`
+      canPurchaseNow && preferredLiveQuote?.registrationCost !== undefined
+        ? `BUY ${comparison.domain} VIA ${preferredLiveQuote.registrar.toUpperCase()} FOR ${preferredLiveQuote.registrationCost.toFixed(2)} USD`
         : null;
 
     const warnings: string[] = [];
@@ -106,6 +113,8 @@ export class ProviderManager {
 
     if (!recommendedRegistrar) {
       warnings.push('No registrar quote is available, so there is nothing actionable to buy yet.');
+    } else if (!preferredLiveQuote) {
+      warnings.push('No configured purchase provider returned an available exact USD registration quote.');
     }
 
     if (config.purchaseMode === 'disabled') {
@@ -149,6 +158,10 @@ export class ProviderManager {
 
     if (guardPhrase !== plan.guardPhrase) {
       throw new Error('Guard phrase mismatch. Re-run plan_domain_purchase and use the fresh guard phrase.');
+    }
+
+    if (registrar !== plan.recommendedRegistrar) {
+      throw new Error('Registrar mismatch. Use the registrar authorized by the fresh purchase guard phrase.');
     }
 
     if (comparison.consensusAvailable !== true) {
