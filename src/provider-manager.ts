@@ -34,7 +34,10 @@ export class ProviderManager {
       const exactQuote = provider.getExactQuote ? await provider.getExactQuote(domain) : null;
       if (exactQuote) {
         quotes.push(exactQuote);
-      } else if (provider.getEstimatedPricing) {
+      }
+      // An exact availability check can omit standard registration pricing.
+      // Keep that result and expose the TLD estimate separately as an estimate.
+      if (exactQuote?.registrationCost === undefined && provider.getEstimatedPricing) {
         const estimated = await provider.getEstimatedPricing(tld);
         if (estimated) {
           quotes.push(estimated);

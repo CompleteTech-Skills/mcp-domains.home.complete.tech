@@ -25,6 +25,9 @@ Public RDAP lookups and Porkbun TLD pricing work without registrar credentials.
 Namecheap needs API access and an allowlisted client IP. Exact quotes and live
 registration depend on provider permissions and API support. RDAP signals and
 estimated prices are not guarantees of availability or checkout cost.
+If an exact availability check omits registration pricing, comparisons retain
+that check and list the registrar's TLD price estimate separately. An available
+exact check does not turn that estimate into an exact quote or purchase guard.
 
 ## Tools
 
